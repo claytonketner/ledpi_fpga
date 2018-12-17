@@ -83,7 +83,7 @@ module ledpi_fpga (
 );
 	wire clk;
 	OSCH #(
-		.NOM_FREQ("29.56")
+		.NOM_FREQ("44.33")
 	) internal_oscillator_inst (
 		.STDBY(1'b0),
 		.OSC(clk)
@@ -125,19 +125,18 @@ module ledpi_fpga (
 			0:  // Prepare row
 			begin
 				col <= 0;
-				m_clk <= 0;
-				m_stb <= 0;
+				//m_clk <= 0;
+				//m_stb <= 0;
 				m_A <= row[0];
 				m_B <= row[1];
 				m_C <= row[2];
 				m_D <= row[3];
+				m_oe <= 1;  // Turn off output so we can clock in data
 				iStep <= 10;
 			end
 			
 			10:  // Write to row
 			begin
-				m_oe <= 1;  // Turn off output so we can clock in data
-
 				m_R1 <= (matrix_data[current_buffer][row][col][0] > pwm_counter);
 				m_G1 <= (matrix_data[current_buffer][row][col][1] > pwm_counter);
 				m_B1 <= (matrix_data[current_buffer][row][col][2] > pwm_counter);
@@ -160,15 +159,14 @@ module ledpi_fpga (
 				end
 			end
 			
-			20:  // End row - latch the data
+			20:  // Latch the data
 			begin
-				m_stb <= 1;  // Latch data in
+				m_stb <= !m_stb;  // Latch data in
 				iStep <= 30;
 			end
 			
-			30:  // Enable the output and get ready to write to the next row
+			30:  // Enable the output, and get ready to write to the next row
 			begin
-				m_stb <= 0;
 				m_oe <= 0;
 				row <= row + 1;
 				iStep <= 0;
@@ -212,9 +210,27 @@ module ledpi_fpga (
 		matrix_data[0][0][28][0] <= 230;
 		matrix_data[0][0][29][0] <= 240;
 		matrix_data[0][0][30][0] <= 250;
-		matrix_data[0][0][31][0] <= brightness_counter;
-		matrix_data[0][1][31][1] <= brightness_counter;
-		matrix_data[0][2][31][2] <= brightness_counter;
+		matrix_data[0][0][31][0] <= 255;
+		matrix_data[0][0][32][0] <= 1;
+		matrix_data[0][0][33][0] <= 2;
+		matrix_data[0][0][34][0] <= 3;
+		matrix_data[0][0][35][0] <= 4;
+		matrix_data[0][0][36][0] <= 5;
+		matrix_data[0][0][37][0] <= 6;
+		matrix_data[0][0][38][0] <= 7;
+		matrix_data[0][0][39][0] <= 8;
+		matrix_data[0][0][40][0] <= 9;
+		matrix_data[0][0][41][0] <= 10;
+		matrix_data[0][0][42][0] <= 11;
+		matrix_data[0][16][0][1] <= 10;
+		matrix_data[0][16][1][1] <= 20;
+		matrix_data[0][16][2][1] <= 30;
+		matrix_data[0][16][3][1] <= 40;
+		matrix_data[0][16][4][1] <= 50;
+		matrix_data[0][16][5][1] <= 60;
+		matrix_data[0][0][63][0] <= brightness_counter;
+		matrix_data[0][1][63][1] <= brightness_counter;
+		matrix_data[0][2][63][2] <= brightness_counter;
 		// TEST DATA END
 	end
 	
