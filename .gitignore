@@ -1,0 +1,8 @@
+*
+!.gitignore
+!.v
+!.lpf
+!.ldf
+
+!*/
+!*/*.jed
