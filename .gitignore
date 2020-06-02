@@ -1,0 +1,7 @@
+hardware.asc
+hardware.bin
+hardware.blif
+hardware.json
+hardware.out
+venv/
+.sconsign.dblite
