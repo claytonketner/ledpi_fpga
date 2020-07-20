@@ -21,6 +21,7 @@ solutions. I was like screw that I don't want to add any more circuitry - this s
 one of these off the shelf boards! It's 2020!
 
 So then I bought a TinyFPGA BX, which has over 6x the number of logic elements! That should work, right?
+Also, the BX has a nice micro USB port on it for programming, whereas the A2 had a JTAG interface.
 After buying the BX, I decided it might make sense to take a deeper look at FPGAs first and learn more
 about how they really work. This is when I learned that they contain RAM. The A2 I originally bought has
 64 kbit of block RAM, and the BX has 128 kbit. 
