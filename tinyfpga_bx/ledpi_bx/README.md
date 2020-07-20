@@ -9,4 +9,8 @@ The ICE40 series contains embedded block RAM (EBR), which each are 4 kbit. The I
 
 That's pretty neat.
 In my previous try with the TinyFPGA A2, I didn't realize it had EBR. If I had known that, I probably could have made that model work.
-But I already switched to the BX, and it has some nicer things about it so I'm sticking with it!
+But I already switched to the BX, and it has some nicer things about it so I'm sticking with it! Namely:
+
+* USB programming interface
+* Command line interface - I don't need to download a huge IDE and run Windows
+* Less file cruft, due to the tinyprog programmer
