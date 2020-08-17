@@ -2,6 +2,7 @@ hardware.asc
 hardware.bin
 hardware.blif
 hardware.json
-hardware.out
+*.out
+*.vcd
 venv/
 .sconsign.dblite
