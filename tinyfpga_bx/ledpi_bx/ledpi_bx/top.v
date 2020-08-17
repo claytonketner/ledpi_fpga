@@ -59,7 +59,7 @@ module top (
 
     // matrix_data[double buffer (0-1)][row (0-31)][column (0-63)][RGB (0-2)][byte (0-255)]
     // reg[7:0] matrix_data[0:0][31:0][63:0][2:0];
-    reg[7:0] received_data;  // TODO: make sure the size of this and the module's output are compatible
+    wire[7:0] received_data;  // TODO: make sure the size of this and the module's output are compatible
     reg[15:0] max_index = (64 * 32 * 3 * 8) - 1;  // Index of the last bit we care about
     // TODO: add functionality to make sure we received a complete set of data before flipping the double buffer
     reg[6:0] recv_counter = 0;  // Increases every time we receive a chunk of SPI data, wraps to 0 at 96
@@ -76,89 +76,91 @@ module top (
     // I'll refer to as blocks: 8 rows of 64 LEDs (one color only) = 512. Then there are two sets of
     // that memory for double buffering (buffers a and b).
     // TODO: do both *CLKE and *E need to be turned off?
-    SB_RAM512x8 red_block0_a(
-        .RDATA(red1),          .RADDR(disp_index - (512*0)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 &&  buffer_a), .RE(disp_block == 0 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*0)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 && !buffer_a), .WE(recv_block == 0 && !buffer_a));
-    SB_RAM512x8 red_block0_b(
-        .RDATA(red1),          .RADDR(disp_index - (512*0)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 && !buffer_a), .RE(disp_block == 0 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*0)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 &&  buffer_a), .WE(recv_block == 0 &&  buffer_a));
+    // TODO: the simulator doesn't like these - maybe we can just use normal registers? Seems like
+    // those will be identified as usable for the RAM blocks
+    //SB_RAM512x8 red_block0_a(
+    //    .RDATA(red1),          .RADDR(disp_index - (512*0)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 &&  buffer_a), .RE(disp_block == 0 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*0)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 && !buffer_a), .WE(recv_block == 0 && !buffer_a));
+    //SB_RAM512x8 red_block0_b(
+    //    .RDATA(red1),          .RADDR(disp_index - (512*0)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 && !buffer_a), .RE(disp_block == 0 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*0)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 &&  buffer_a), .WE(recv_block == 0 &&  buffer_a));
 
-    SB_RAM512x8 red_block1_a(
-        .RDATA(red1),          .RADDR(disp_index - (512*1)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 &&  buffer_a), .RE(disp_block == 1 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*1)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 && !buffer_a), .WE(recv_block == 1 && !buffer_a));
-    SB_RAM512x8 red_block1_b(
-        .RDATA(red1),          .RADDR(disp_index - (512*1)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 && !buffer_a), .RE(disp_block == 1 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*1)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 &&  buffer_a), .WE(recv_block == 1 &&  buffer_a));
+    //SB_RAM512x8 red_block1_a(
+    //    .RDATA(red1),          .RADDR(disp_index - (512*1)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 &&  buffer_a), .RE(disp_block == 1 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*1)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 && !buffer_a), .WE(recv_block == 1 && !buffer_a));
+    //SB_RAM512x8 red_block1_b(
+    //    .RDATA(red1),          .RADDR(disp_index - (512*1)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 && !buffer_a), .RE(disp_block == 1 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*1)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 &&  buffer_a), .WE(recv_block == 1 &&  buffer_a));
 
-    SB_RAM512x8 red_block2_a(
-        .RDATA(red2),          .RADDR(disp_index - (512*2)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 2 &&  buffer_a), .RE(disp_block == 2 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*2)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 && !buffer_a), .WE(recv_block == 2 && !buffer_a));
-    SB_RAM512x8 red_block2_b(
-        .RDATA(red2),          .RADDR(disp_index - (512*2)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 2 && !buffer_a), .RE(disp_block == 2 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*2)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 &&  buffer_a), .WE(recv_block == 2 &&  buffer_a));
+    //SB_RAM512x8 red_block2_a(
+    //    .RDATA(red2),          .RADDR(disp_index - (512*2)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 2 &&  buffer_a), .RE(disp_block == 2 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*2)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 && !buffer_a), .WE(recv_block == 2 && !buffer_a));
+    //SB_RAM512x8 red_block2_b(
+    //    .RDATA(red2),          .RADDR(disp_index - (512*2)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 2 && !buffer_a), .RE(disp_block == 2 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*2)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 &&  buffer_a), .WE(recv_block == 2 &&  buffer_a));
 
-    SB_RAM512x8 red_block3_a(
-        .RDATA(red2),          .RADDR(disp_index - (512*3)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 3 &&  buffer_a), .RE(disp_block == 3 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*3)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 && !buffer_a), .WE(recv_block == 3 && !buffer_a));
-    SB_RAM512x8 red_block3_b(
-        .RDATA(red2),          .RADDR(disp_index - (512*3)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 3 && !buffer_a), .RE(disp_block == 3 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*3)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 &&  buffer_a), .WE(recv_block == 3 &&  buffer_a));
+    //SB_RAM512x8 red_block3_a(
+    //    .RDATA(red2),          .RADDR(disp_index - (512*3)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 3 &&  buffer_a), .RE(disp_block == 3 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*3)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 && !buffer_a), .WE(recv_block == 3 && !buffer_a));
+    //SB_RAM512x8 red_block3_b(
+    //    .RDATA(red2),          .RADDR(disp_index - (512*3)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 3 && !buffer_a), .RE(disp_block == 3 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*3)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 &&  buffer_a), .WE(recv_block == 3 &&  buffer_a));
 
-    SB_RAM512x8 grn_block0_a(
-        .RDATA(grn1),          .RADDR(disp_index - (512*4)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 &&  buffer_a), .RE(disp_block == 0 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*4)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 && !buffer_a), .WE(recv_block == 0 && !buffer_a));
-    SB_RAM512x8 grn_block0_b(
-        .RDATA(grn1),          .RADDR(disp_index - (512*4)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 && !buffer_a), .RE(disp_block == 0 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*4)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 &&  buffer_a), .WE(recv_block == 0 &&  buffer_a));
+    //SB_RAM512x8 grn_block0_a(
+    //    .RDATA(grn1),          .RADDR(disp_index - (512*4)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 &&  buffer_a), .RE(disp_block == 0 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*4)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 && !buffer_a), .WE(recv_block == 0 && !buffer_a));
+    //SB_RAM512x8 grn_block0_b(
+    //    .RDATA(grn1),          .RADDR(disp_index - (512*4)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 && !buffer_a), .RE(disp_block == 0 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*4)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 &&  buffer_a), .WE(recv_block == 0 &&  buffer_a));
 
-    SB_RAM512x8 grn_block1_a(
-        .RDATA(grn1),          .RADDR(disp_index - (512*5)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 &&  buffer_a), .RE(disp_block == 1 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*5)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 && !buffer_a), .WE(recv_block == 1 && !buffer_a));
-    SB_RAM512x8 grn_block1_b(
-        .RDATA(grn1),          .RADDR(disp_index - (512*5)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 && !buffer_a), .RE(disp_block == 1 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*5)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 &&  buffer_a), .WE(recv_block == 1 &&  buffer_a));
+    //SB_RAM512x8 grn_block1_a(
+    //    .RDATA(grn1),          .RADDR(disp_index - (512*5)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 &&  buffer_a), .RE(disp_block == 1 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*5)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 && !buffer_a), .WE(recv_block == 1 && !buffer_a));
+    //SB_RAM512x8 grn_block1_b(
+    //    .RDATA(grn1),          .RADDR(disp_index - (512*5)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 && !buffer_a), .RE(disp_block == 1 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*5)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 &&  buffer_a), .WE(recv_block == 1 &&  buffer_a));
 
-    SB_RAM512x8 grn_block2_a(
-        .RDATA(grn2),          .RADDR(disp_index - (512*6)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 2 &&  buffer_a), .RE(disp_block == 2 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*6)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 && !buffer_a), .WE(recv_block == 2 && !buffer_a));
-    SB_RAM512x8 grn_block2_b(
-        .RDATA(grn2),          .RADDR(disp_index - (512*6)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 2 && !buffer_a), .RE(disp_block == 2 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*6)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 &&  buffer_a), .WE(recv_block == 2 &&  buffer_a));
+    //SB_RAM512x8 grn_block2_a(
+    //    .RDATA(grn2),          .RADDR(disp_index - (512*6)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 2 &&  buffer_a), .RE(disp_block == 2 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*6)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 && !buffer_a), .WE(recv_block == 2 && !buffer_a));
+    //SB_RAM512x8 grn_block2_b(
+    //    .RDATA(grn2),          .RADDR(disp_index - (512*6)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 2 && !buffer_a), .RE(disp_block == 2 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*6)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 &&  buffer_a), .WE(recv_block == 2 &&  buffer_a));
 
-    SB_RAM512x8 grn_block3_a(
-        .RDATA(grn2),          .RADDR(disp_index - (512*7)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 3 &&  buffer_a), .RE(disp_block == 3 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*7)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 && !buffer_a), .WE(recv_block == 3 && !buffer_a));
-    SB_RAM512x8 grn_block3_b(
-        .RDATA(grn2),          .RADDR(disp_index - (512*7)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 3 && !buffer_a), .RE(disp_block == 3 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*7)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 &&  buffer_a), .WE(recv_block == 3 &&  buffer_a));
+    //SB_RAM512x8 grn_block3_a(
+    //    .RDATA(grn2),          .RADDR(disp_index - (512*7)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 3 &&  buffer_a), .RE(disp_block == 3 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*7)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 && !buffer_a), .WE(recv_block == 3 && !buffer_a));
+    //SB_RAM512x8 grn_block3_b(
+    //    .RDATA(grn2),          .RADDR(disp_index - (512*7)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 3 && !buffer_a), .RE(disp_block == 3 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*7)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 &&  buffer_a), .WE(recv_block == 3 &&  buffer_a));
 
-    SB_RAM512x8 blu_block0_a(
-        .RDATA(blu1),          .RADDR(disp_index - (512*8)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 &&  buffer_a), .RE(disp_block == 0 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*8)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 && !buffer_a), .WE(recv_block == 0 && !buffer_a));
-    SB_RAM512x8 blu_block0_b(
-        .RDATA(blu1),          .RADDR(disp_index - (512*8)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 && !buffer_a), .RE(disp_block == 0 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*8)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 &&  buffer_a), .WE(recv_block == 0 &&  buffer_a));
+    //SB_RAM512x8 blu_block0_a(
+    //    .RDATA(blu1),          .RADDR(disp_index - (512*8)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 &&  buffer_a), .RE(disp_block == 0 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*8)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 && !buffer_a), .WE(recv_block == 0 && !buffer_a));
+    //SB_RAM512x8 blu_block0_b(
+    //    .RDATA(blu1),          .RADDR(disp_index - (512*8)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 0 && !buffer_a), .RE(disp_block == 0 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*8)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 0 &&  buffer_a), .WE(recv_block == 0 &&  buffer_a));
 
-    SB_RAM512x8 blu_block1_a(
-        .RDATA(blu1),          .RADDR(disp_index - (512*9)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 &&  buffer_a), .RE(disp_block == 1 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*9)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 && !buffer_a), .WE(recv_block == 1 && !buffer_a));
-    SB_RAM512x8 blu_block1_b(
-        .RDATA(blu1),          .RADDR(disp_index - (512*9)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 && !buffer_a), .RE(disp_block == 1 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*9)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 &&  buffer_a), .WE(recv_block == 1 &&  buffer_a));
+    //SB_RAM512x8 blu_block1_a(
+    //    .RDATA(blu1),          .RADDR(disp_index - (512*9)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 &&  buffer_a), .RE(disp_block == 1 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*9)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 && !buffer_a), .WE(recv_block == 1 && !buffer_a));
+    //SB_RAM512x8 blu_block1_b(
+    //    .RDATA(blu1),          .RADDR(disp_index - (512*9)),  .RCLK(ram_out_clk), .RCLKE(disp_block == 1 && !buffer_a), .RE(disp_block == 1 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*9)),  .WCLK(ram_in_clk),  .WCLKE(recv_block == 1 &&  buffer_a), .WE(recv_block == 1 &&  buffer_a));
 
-    SB_RAM512x8 blu_block2_a(
-        .RDATA(blu2),          .RADDR(disp_index - (512*10)), .RCLK(ram_out_clk), .RCLKE(disp_block == 2 &&  buffer_a), .RE(disp_block == 2 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*10)), .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 && !buffer_a), .WE(recv_block == 2 && !buffer_a));
-    SB_RAM512x8 blu_block2_b(
-        .RDATA(blu2),          .RADDR(disp_index - (512*10)), .RCLK(ram_out_clk), .RCLKE(disp_block == 2 && !buffer_a), .RE(disp_block == 2 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*10)), .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 &&  buffer_a), .WE(recv_block == 2 &&  buffer_a));
+    //SB_RAM512x8 blu_block2_a(
+    //    .RDATA(blu2),          .RADDR(disp_index - (512*10)), .RCLK(ram_out_clk), .RCLKE(disp_block == 2 &&  buffer_a), .RE(disp_block == 2 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*10)), .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 && !buffer_a), .WE(recv_block == 2 && !buffer_a));
+    //SB_RAM512x8 blu_block2_b(
+    //    .RDATA(blu2),          .RADDR(disp_index - (512*10)), .RCLK(ram_out_clk), .RCLKE(disp_block == 2 && !buffer_a), .RE(disp_block == 2 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*10)), .WCLK(ram_in_clk),  .WCLKE(recv_block == 2 &&  buffer_a), .WE(recv_block == 2 &&  buffer_a));
 
-    SB_RAM512x8 blu_block3_a(
-        .RDATA(blu2),          .RADDR(disp_index - (512*11)), .RCLK(ram_out_clk), .RCLKE(disp_block == 3 &&  buffer_a), .RE(disp_block == 3 &&  buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*11)), .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 && !buffer_a), .WE(recv_block == 3 && !buffer_a));
-    SB_RAM512x8 blu_block3_b(
-        .RDATA(blu2),          .RADDR(disp_index - (512*11)), .RCLK(ram_out_clk), .RCLKE(disp_block == 3 && !buffer_a), .RE(disp_block == 3 && !buffer_a),
-        .WDATA(received_data), .WADDR(recv_index - (512*11)), .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 &&  buffer_a), .WE(recv_block == 3 &&  buffer_a));
+    //SB_RAM512x8 blu_block3_a(
+    //    .RDATA(blu2),          .RADDR(disp_index - (512*11)), .RCLK(ram_out_clk), .RCLKE(disp_block == 3 &&  buffer_a), .RE(disp_block == 3 &&  buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*11)), .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 && !buffer_a), .WE(recv_block == 3 && !buffer_a));
+    //SB_RAM512x8 blu_block3_b(
+    //    .RDATA(blu2),          .RADDR(disp_index - (512*11)), .RCLK(ram_out_clk), .RCLKE(disp_block == 3 && !buffer_a), .RE(disp_block == 3 && !buffer_a),
+    //    .WDATA(received_data), .WADDR(recv_index - (512*11)), .WCLK(ram_in_clk),  .WCLKE(recv_block == 3 &&  buffer_a), .WE(recv_block == 3 &&  buffer_a));
 
     always @(posedge CLK) begin
         pwm_counter <= pwm_counter + 1;
@@ -214,7 +216,7 @@ module top (
                 // Check if row will wrap back to 0 next clock
                 if (row >= 31) begin
                     disp_block <= 0;
-                else
+                end else begin
                     // No wrap will occur, anticipate what the row will be next clock
                     disp_block <= (row + 1) / 8;
                 end
@@ -226,12 +228,12 @@ module top (
 
         case(ram_step)
             0:  // Idle
-                if (something) begin
+                if (1) begin  // TODO
                     // We've received new data over the SPI bus!
                     if (recv_counter >= 95) begin
                         recv_counter <= 0;
                         recv_block <= 0;
-                    else
+                    end else begin
                         recv_counter <= recv_counter + 1;
                         // Right now, these two are always the same number
                         recv_block <= recv_counter + 1;
@@ -241,6 +243,7 @@ module top (
 
             10:  // Write the new data to RAM
                 // TODO
+                ram_step <= ram_step;
 
             default: ram_step <= 0;
         endcase
@@ -284,53 +287,4 @@ module SimplePWM(
         cnt <= cnt + 1;  // Free running counter
     end
     assign PWM_out = (PWM_in > cnt);  // Comparator
-endmodule
-// TODO: why is this set to 21??
-module SPISlave #(parameter DATA_BITS = 21)(
-    input clk,
-    input sck,
-    input cs,
-    input mosi,
-    output miso,
-    output reg [(DATA_BITS - 1):0] received_data
-);
-    reg [2:0] sck_reg;
-    reg [2:0] cs_reg;
-    reg [1:0] mosi_reg;
-    
-    // SPI
-    reg [(DATA_BITS - 1):0] miso_ii;
-    reg [(DATA_BITS - 1):0] data;
-    reg [(DATA_BITS - 1):0] _received_data;
-    wire cs_active = (!cs_reg[1]);
-    wire cs_becoming_active = (cs_reg[2:1] == 2'b10);
-    wire cs_becoming_inactive = (cs_reg[2:1] == 2'b01);
-    wire sck_rising_edge = (sck_reg[2:1] == 2'b01);
-    wire sck_falling_edge = (sck_reg[2:1] == 2'b10);
-    
-    always @(posedge clk) begin
-        sck_reg <= {sck_reg[1:0], sck};
-        cs_reg <= {cs_reg[1:0], cs};
-        mosi_reg <= {mosi_reg[0], mosi};
-        if (cs_becoming_active) begin
-            data <= 0;
-            miso_ii <= 0;
-        end
-        if (cs_becoming_inactive) begin
-            _received_data <= data;
-            miso_ii <= 0;
-        end
-        if (cs_active && sck_falling_edge) begin
-            // Send back the data we got last time
-            miso_ii <= miso_ii + 1;
-            if (miso_ii > (DATA_BITS - 1)) begin
-                miso_ii <= 0;
-            end
-        end
-        if (cs_active && sck_rising_edge) begin
-            data <= {data[(DATA_BITS - 2):0], mosi_reg[1]};
-        end
-    end
-    assign received_data = _received_data;
-    assign miso = _received_data[(DATA_BITS - 1) - miso_ii];
 endmodule
